@@ -1,6 +1,6 @@
 import Link from "next/link";
-import MatchesList from "./components/MatchesList";
-import UserNav from "./components/usernav";
+import MatchesList from "../components/MatchesList";
+import UserNav from "../components/usernav";
 
 export default function Home() {
   return (
