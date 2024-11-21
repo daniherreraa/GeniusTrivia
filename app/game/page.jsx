@@ -1,159 +1,165 @@
 "use client";
+
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/lib/store";
+import { decode } from "html-entities";
 
-const Page = () => {
-  const [questionIndex, setQuestionIndex] = useState(0);
+export default function GamePage() {
   const [questions, setQuestions] = useState([]);
-  const [answers, setAnswers] = useState([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [lives, setLives] = useState(3);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [isCorrect, setIsCorrect] = useState(null);
-  const [isGameOver, setIsGameOver] = useState(false);
-  const [username, setUsername] = useState("");
   const [score, setScore] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [gameOver, setGameOver] = useState(false);
 
-  useEffect(() => {
-    const fetchQuestions = async () => {
-      const response = await fetch("https://the-trivia-api.com/v2/questions");
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuthStore();
+
+  useEffect(
+    () => {
+      if (!isAuthenticated) {
+        router.push("/login");
+        return;
+      }
+      fetchQuestions();
+    },
+    [isAuthenticated, router]
+  );
+
+  const fetchQuestions = async () => {
+    try {
+      const response = await fetch("https://opentdb.com/api.php?amount=10");
       const data = await response.json();
-      setQuestions(data);
-
-      if (data.length > 0) {
-        loadNewQuestion(data[0]);
-      }
-    };
-
-    fetchQuestions();
-  }, []);
-
-  const shuffleArray = (array) => {
-    return array.sort(() => Math.random() - 0.5);
-  };
-
-  const loadNewQuestion = (question) => {
-    const allAnswers = [
-      question.correctAnswer,
-      ...question.incorrectAnswers,
-    ];
-    setAnswers(shuffleArray(allAnswers));
-    setSelectedAnswer(null);
-    setIsCorrect(null);
-  };
-
-  const handleAnswerClick = (answer) => {
-    const currentQuestion = questions[questionIndex];
-
-    if (answer === currentQuestion.correctAnswer) {
-      setIsCorrect(true);
-      setSelectedAnswer(answer);
-      setScore(score + 1);
-
-      setTimeout(() => {
-        if (questionIndex + 1 < questions.length) {
-          setQuestionIndex(questionIndex + 1);
-          loadNewQuestion(questions[questionIndex + 1]);
-        } else {
-          alert("¡Ganaste! Has respondido todas las preguntas.");
-        }
-      }, 1000);
-    } else {
-      setIsCorrect(false);
-      setLives(lives - 1);
-      setSelectedAnswer(answer);
-
-      if (lives - 1 === 0) {
-        setIsGameOver(true);
-        alert("Juego terminado. ¡Se te acabaron los círculos rojos!");
-      } else {
-        setTimeout(() => {
-          if (questionIndex + 1 < questions.length) {
-            setQuestionIndex(questionIndex + 1);
-            loadNewQuestion(questions[questionIndex + 1]);
-          }
-        }, 1000);
-      }
+      const formattedQuestions = data.results.map(q => ({
+        ...q,
+        all_answers: [...q.incorrect_answers, q.correct_answer].sort(
+          () => Math.random() - 0.5
+        )
+      }));
+      setQuestions(formattedQuestions);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching questions:", error);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const response = await fetch('http://localhost:8080/matches', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, score }),
-    });
-  
-    if (!response.ok) {
-      alert("Error al guardar el puntaje");
+  const handleAnswer = async selectedAnswer => {
+    const currentQuestion = questions[currentQuestionIndex];
+    const isCorrect = selectedAnswer === currentQuestion.correct_answer;
+
+    if (!isCorrect) {
+      setLives(prev => prev - 1);
+      if (lives <= 1) {
+        await saveGameResults();
+        setGameOver(true);
+        setTimeout(() => router.push("/"), 2000);
+        return;
+      }
     } else {
-      alert("Puntaje guardado con éxito");
-      window.location.href = "/"; // Redirige a la página principal
+      setScore(prev => prev + 1);
+    }
+
+    if (currentQuestionIndex + 1 >= questions.length) {
+      await fetchQuestions();
+      setCurrentQuestionIndex(0);
+    } else {
+      setCurrentQuestionIndex(prev => prev + 1);
     }
   };
+
+  const saveGameResults = async () => {
+    try {
+      await fetch("/api/games", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          correctAnswers: score,
+          totalQuestions: currentQuestionIndex + 1
+        })
+      });
+    } catch (error) {
+      console.error("Error saving game results:", error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-dodger-blue-600 grid place-items-center text-white">
+        Loading questions...
+      </div>
+    );
+  }
+
+  if (gameOver) {
+    return (
+      <div className="min-h-screen bg-dodger-blue-600 grid place-items-center text-white">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Game Over!</h2>
+          <p>
+            Final Score: {score}
+          </p>
+          <p>Redirecting to home...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const currentQuestion = questions[currentQuestionIndex];
 
   return (
-    <div className="relative w-screen h-screen bg-dodger-blue-600 flex justify-center items-center p-8">
-      <span
-        id="questionIndex"
-        className="absolute font-semibold text-[10vw] text-dodger-blue-500 -top-16 -left-6 transform -translate-x-3 -translate-y-6"
-      >
-        {String(questionIndex + 1).padStart(2, "0")}
-      </span>
-      <div className="absolute top-8 right-8 flex flex-col gap-1">
-        {[...Array(lives)].map((_, index) => (
-          <div key={index} className="w-4 h-4 bg-razzmatazz-700 rounded-full" />
-        ))}
-      </div>
-      {questions && questions[questionIndex] && (
-        <div id="questionContainer" className="flex flex-col justify-start">
-          <h1 id="category" className="font-semibold text-xl md:text-3xl">
-            {questions[questionIndex]?.category.replace(/_/g, " ")}
-          </h1>
-          <p className="text-2xl">{questions[questionIndex]?.question?.text}</p>
-
-          <div id="optionsContainer" className="flex flex-col">
-            {answers.map((answer, index) => (
-              <button
-                key={index}
-                onClick={() => handleAnswerClick(answer)}
-                className={`w-full h-10 rounded-lg mt-2 text-lg px-6 ${
-                  selectedAnswer === answer
-                    ? isCorrect
-                      ? "bg-green-500 text-white"
-                      : "bg-red-500 text-white"
-                    : "bg-dodger-blue-50 text-dodger-blue-600"
-                }`}
-              >
-                {answer}
-              </button>
-            ))}
+    <div className="min-h-screen bg-dodger-blue-600 p-6 text-white">
+      <div className="max-w-lg mx-auto relative pt-12">
+        {/* Question counter and lives */}
+        <div className="flex justify-between items-start mb-12">
+          <span className="text-6xl font-bold opacity-50">
+            {String(currentQuestionIndex + 1).padStart(2, "0")}
+          </span>
+          <div className="flex gap-1">
+            {[...Array(3)].map((_, i) =>
+              <div
+                key={i}
+                className={`w-3 h-3 rounded-full ${i < lives
+                  ? "bg-red-500"
+                  : "bg-red-500/30"}`}
+              />
+            )}
           </div>
         </div>
-      )}
-      {isGameOver && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white text-dodger-blue-950 p-4 rounded-lg shadow-lg">
-          <h2 className="text-xl font-semibold mb-2">Juego Terminado</h2>
-          <form onSubmit={handleSubmit}>
-            <label className="block mb-2">
-              Nombre:
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="border rounded p-2 w-full"
-                required
-              />
-            </label>
-            <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded">
-              Guardar Puntaje
-            </button>
-          </form>
+
+        {/* Question */}
+        <div className="mb-8">
+          <h3 className="text-xl mb-2">
+            {currentQuestion.category}
+          </h3>
+          <p className="text-lg">
+            {decode(currentQuestion.question)}
+          </p>
         </div>
-      )}
+
+        {/* Answers */}
+        <div className="grid grid-cols-2 gap-4">
+          {currentQuestion.all_answers.map((answer, index) =>
+            <button
+              key={index}
+              onClick={() => handleAnswer(answer)}
+              className="bg-white/90 hover:bg-white text-dodger-blue-600 p-4 rounded-lg text-center transition-colors"
+            >
+              {decode(answer)}
+            </button>
+          )}
+        </div>
+
+        {/* Score */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2">
+          <p className="text-sm">
+            Score: {score}
+          </p>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default Page;
+}

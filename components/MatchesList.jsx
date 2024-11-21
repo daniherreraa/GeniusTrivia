@@ -1,52 +1,87 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react'
+import { Trophy, Medal } from 'lucide-react'
 
-const MatchesList = () => {
-  const [matches, setMatches] = useState([]);
-  const [error, setError] = useState(null);
+export default function MatchesList() {
+  const [rankings, setRankings] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    const fetchMatches = async () => {
+    const fetchRankings = async () => {
       try {
-        const response = await fetch("http://localhost:8080/matches");
+        const response = await fetch('/api/rankings')
         if (!response.ok) {
-          throw new Error("Failed to fetch matches");
+          throw new Error('Failed to fetch rankings')
         }
-        const data = await response.json();
-        const sortedMatches = data.sort((a, b) => b.score - a.score);
-        setMatches(sortedMatches);
+        const data = await response.json()
+        setRankings(data)
       } catch (err) {
-        setError(err.message);
+        setError(err.message)
+      } finally {
+        setIsLoading(false)
       }
-    };
+    }
 
-    fetchMatches();
-  }, []);
+    fetchRankings()
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="w-full p-4 bg-white/10 backdrop-blur-sm text-white rounded-lg">
+        Loading rankings...
+      </div>
+    )
+  }
 
   if (error) {
     return (
-      <div>
+      <div className="w-full p-4 bg-white/10 backdrop-blur-sm text-white rounded-lg">
         Error: {error}
       </div>
-    );
+    )
   }
 
-  console.log(matches);
-
   return (
-    <div className="mb-4">
-      <h4 className='text-lg md:text-2xl font-semibold'>Ranking</h4>
-      <div className="flex flex-col bg-dodger-blue-500 w-full h-20 md:h-48 rounded-lg p-4 overflow-auto">
-        {matches.map(match => 
-          <div key={match.id} className="flex flex-row justify-between my-1 px-4">
-            <div className="text-2xl">{match.username}</div>
-            <div className="text-2xl">{match.score}</div>
+    <div className="w-full p-4 bg-white/10 backdrop-blur-sm text-white rounded-lg">
+      <div className="flex items-center gap-2 mb-4">
+        <Trophy className="h-5 w-5" />
+        <h2 className="text-lg font-bold">Global Rankings</h2>
+      </div>
+      <div className="space-y-3">
+        {rankings.map((ranking, index) => (
+          <div
+            key={ranking.user_id}
+            className={`flex items-center gap-4 p-3 rounded-lg transition-colors
+              ${index === 0 ? 'bg-yellow-500/20' : 
+                index === 1 ? 'bg-gray-400/20' : 
+                index === 2 ? 'bg-amber-700/20' : 'bg-white/5'}`}
+          >
+            <div className="flex items-center gap-2 min-w-[40px]">
+              {index < 3 ? (
+                <Medal className={
+                  index === 0 ? "text-yellow-500" :
+                  index === 1 ? "text-gray-400" :
+                  "text-amber-700"
+                } />
+              ) : (
+                <span className="ml-6">#{index + 1}</span>
+              )}
+            </div>
+            <div className="flex-1">
+              <p className="font-medium">{ranking.username}</p>
+              <p className="text-sm text-dodger-blue-100">
+                {ranking.total_correct} correct answers
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-medium">{ranking.accuracy}%</p>
+              <p className="text-xs text-dodger-blue-100">accuracy</p>
+            </div>
           </div>
-        )}
+        ))}
       </div>
     </div>
-  );
-};
-
-export default MatchesList;
+  )
+}
