@@ -1,38 +1,43 @@
-'use client'
-
-import { useState, useEffect } from 'react'
-import { Trophy, Medal } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import { Trophy, Medal } from 'lucide-react';
 
 function MatchesList() {
-  const [rankings, setRankings] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [rankings, setRankings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchRankings = async () => {
+    try {
+      const response = await fetch('/api/rankings');
+      if (!response.ok) {
+        throw new Error('Failed to fetch rankings');
+      }
+      const data = await response.json();
+      setRankings(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchRankings = async () => {
-      try {
-        const response = await fetch('/api/rankings')
-        if (!response.ok) {
-          throw new Error('Failed to fetch rankings')
-        }
-        const data = await response.json()
-        setRankings(data)
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setIsLoading(false)
-      }
-    }
+    // Fetch initial rankings
+    fetchRankings();
 
-    fetchRankings()
-  }, [])
+    // Set interval to fetch rankings every 5 seconds
+    const intervalId = setInterval(fetchRankings, 5000);
+
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
+  }, []);
 
   if (isLoading) {
     return (
       <div className="w-full p-4 bg-white/10 backdrop-blur-sm text-white rounded-lg">
         Loading rankings...
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -40,7 +45,7 @@ function MatchesList() {
       <div className="w-full p-4 bg-white/10 backdrop-blur-sm text-white rounded-lg">
         Error: {error}
       </div>
-    )
+    );
   }
 
   return (
@@ -60,11 +65,8 @@ function MatchesList() {
           >
             <div className="flex items-center gap-2 min-w-[40px]">
               {index < 3 ? (
-                <Medal className={
-                  index === 0 ? "text-yellow-500" :
-                  index === 1 ? "text-gray-400" :
-                  "text-amber-700"
-                } />
+                <Medal className={index === 0 ? "text-yellow-500" : 
+                                 index === 1 ? "text-gray-400" : "text-amber-700"} />
               ) : (
                 <span className="ml-6">#{index + 1}</span>
               )}
@@ -76,14 +78,14 @@ function MatchesList() {
               </p>
             </div>
             <div className="text-right">
-              <p className="text-sm font-medium">{ranking.accuracy}%</p>
+              <p className="text-sm font-medium">{ranking.accuracy ?? 0}%</p>
               <p className="text-xs text-dodger-blue-100">accuracy</p>
             </div>
           </div>
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 export default MatchesList;
