@@ -31,7 +31,7 @@ export default function GamePage() {
 
   const fetchQuestions = async () => {
     try {
-      const response = await fetch("https://opentdb.com/api.php?amount=10")
+      const response = await fetch("https://opentdb.com/api.php?amount=10&difficulty=easy")
       const data = await response.json()
       const formattedQuestions = data.results.map(q => ({
         ...q,
