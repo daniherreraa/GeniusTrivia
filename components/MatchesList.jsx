@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Trophy, Medal } from 'lucide-react'
 
-export default function MatchesList() {
+function MatchesList() {
   const [rankings, setRankings] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -85,3 +85,5 @@ export default function MatchesList() {
     </div>
   )
 }
+
+export default MatchesList;

@@ -1,16 +1,30 @@
-"use client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+'use client'
 
-const UserNav = () => {
+import { useAuthStore } from '@/lib/store'
+import { useRouter } from 'next/navigation'
+
+export default function UserNav() {
+  const { user, isAuthenticated, logout } = useAuthStore()
+  const router = useRouter()
+
+  const handleLogout = () => {
+    logout()
+    router.push('/')
+  }
+
+  if (!isAuthenticated) {
+    return null
+  }
+
   return (
-    <nav className="flex w-full items-center justify-between h-14 px-4 pt-4">
-      <h3 className="font-bold text-white">GENIUS</h3>
-      <Avatar className="outline-dashed outline-offset-2 outline-dodger-blue-300">
-        {/* <AvatarImage src={user.imageUrl}/>
-        <AvatarFallback>{user.firstName[0]}</AvatarFallback> */}
-      </Avatar>
+    <nav className="absolute top-0 right-0 m-4 flex items-center space-x-4">
+      <span className="text-white">{user?.username}</span>
+      <button
+        onClick={handleLogout}
+        className="px-4 py-2 bg-white text-dodger-blue-600 rounded-full text-sm"
+      >
+        Logout
+      </button>
     </nav>
-  );
-};
-
-export default UserNav;
+  )
+}
