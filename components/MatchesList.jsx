@@ -28,7 +28,7 @@ export default function MatchesList() {
     fetchRankings();
 
     // Set interval to fetch rankings every 5 seconds
-    const intervalId = setInterval(fetchRankings, 2000);
+    const intervalId = setInterval(fetchRankings, 1000);
 
     // Clean up interval on component unmount
     return () => clearInterval(intervalId);
