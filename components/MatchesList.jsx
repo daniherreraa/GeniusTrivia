@@ -56,7 +56,7 @@ export default function MatchesList() {
         <Trophy className="h-5 w-5" />
         <h2 className="text-lg font-bold">Global Rankings</h2>
       </div>
-      <div className="space-y-3 max-h-32 overflow-y-scroll pr-2">
+      <div className="space-y-3 max-h-44 overflow-y-scroll pr-2">
         {rankings.map((ranking, index) => (
           <div
             key={ranking.user_id}
