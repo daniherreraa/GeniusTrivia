@@ -12,6 +12,30 @@ const decodeHtml = (html) => {
   return doc.documentElement.textContent
 }
 
+// Mapping of categories to saturated background colors
+const categoryColors = {
+  "General Knowledge": "bg-blue-500",
+  "Entertainment: Books": "bg-purple-500",
+  "Entertainment: Film": "bg-indigo-500",
+  "Entertainment: Music": "bg-pink-500",
+  "Entertainment: Musicals & Theatres": "bg-rose-500",
+  "Entertainment: Television": "bg-fuchsia-500",
+  "Entertainment: Video Games": "bg-violet-500",
+  "Entertainment: Board Games": "bg-purple-600",
+  "Science & Nature": "bg-green-500",
+  "Science: Computers": "bg-emerald-500",
+  "Science: Mathematics": "bg-teal-500",
+  "Mythology": "bg-amber-500",
+  "Sports": "bg-orange-500",
+  "Geography": "bg-cyan-500",
+  "History": "bg-yellow-500",
+  "Politics": "bg-red-500",
+  "Art": "bg-lime-500",
+  "Celebrities": "bg-pink-600",
+  "Animals": "bg-green-600",
+  "Vehicles": "bg-blue-600",
+}
+
 export default function GamePage() {
   const [questions, setQuestions] = useState([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
@@ -95,7 +119,7 @@ export default function GamePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-screen bg-dodger-blue-600 grid place-items-center text-white">
+      <div className="min-h-screen w-screen bg-blue-600 grid place-items-center text-white">
         <div className="text-2xl font-bold">Loading questions...</div>
       </div>
     )
@@ -103,12 +127,12 @@ export default function GamePage() {
 
   if (gameOver) {
     return (
-      <div className="min-h-screen w-screen bg-dodger-blue-600 grid place-items-center text-white">
+      <div className="min-h-screen w-screen bg-blue-600 grid place-items-center text-white">
         <motion.div 
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="bg-white text-dodger-blue-600 p-8 rounded-lg shadow-lg text-center"
+          className="bg-white text-blue-600 p-8 rounded-lg shadow-lg text-center"
         >
           <h2 className="text-3xl font-bold mb-4">Game Over!</h2>
           <p className="text-xl mb-4">Final Score: {score}</p>
@@ -116,7 +140,7 @@ export default function GamePage() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => router.push("/")}
-            className="bg-dodger-blue-600 text-white px-6 py-2 rounded-full text-lg font-semibold"
+            className="bg-blue-600 text-white px-6 py-2 rounded-full text-lg font-semibold"
           >
             Back to Home
           </motion.button>
@@ -126,9 +150,10 @@ export default function GamePage() {
   }
 
   const currentQuestion = questions[currentQuestionIndex]
+  const backgroundColor = categoryColors[currentQuestion.category] || "bg-gray-500"
 
   return (
-    <div className="min-h-screen w-screen bg-dodger-blue-600 p-6 text-white overflow-hidden">
+    <div className={`min-h-screen w-screen ${backgroundColor} p-6 text-white overflow-hidden transition-colors duration-300`}>
       <div className="max-w-2xl mx-auto relative pt-12 h-full">
         {/* Question counter and lives */}
         <div className="flex justify-between items-start mb-12">
@@ -149,8 +174,8 @@ export default function GamePage() {
 
         {/* Question */}
         <div className="mb-8">
-          <h3 className="text-xl mb-2">{currentQuestion.category}</h3>
-          <p className="text-2xl font-semibold">
+          <h3 className="text-xl mb-2 font-semibold">{currentQuestion.category}</h3>
+          <p className="text-2xl font-bold">
             {decodeHtml(currentQuestion.question)}
           </p>
         </div>
@@ -161,7 +186,7 @@ export default function GamePage() {
             <motion.button
               key={index}
               onClick={() => handleAnswer(answer)}
-              className="bg-white/90 hover:bg-white text-dodger-blue-600 p-4 rounded-lg text-center transition-colors text-lg font-medium"
+              className="bg-white/90 hover:bg-white text-blue-600 p-4 rounded-lg text-center transition-colors text-lg font-medium"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -201,3 +226,4 @@ export default function GamePage() {
     </div>
   )
 }
+
