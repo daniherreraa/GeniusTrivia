@@ -153,7 +153,7 @@ export default function GamePage() {
   const backgroundColor = categoryColors[currentQuestion.category] || "bg-gray-500"
 
   return (
-    <div className={`min-h-screen w-screen ${backgroundColor} p-6 text-white overflow-hidden transition-colors duration-300`}>
+    <div className={`h-svh w-screen ${backgroundColor} p-6 text-white overflow-hidden transition-colors duration-300`}>
       <div className="max-w-2xl mx-auto relative pt-12 h-full">
         {/* Question counter and lives */}
         <div className="flex justify-between items-start mb-12">
