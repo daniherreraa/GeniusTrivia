@@ -96,7 +96,7 @@ export default function LoginForm() {
             {isLoading ? "Loading..." : "Login"}
           </button>
           <p className="text-sm text-center text-gray-600">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link
               href="/register"
               className="text-dodger-blue-600 hover:text-dodger-blue-500"
