@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Trophy, Medal } from 'lucide-react';
 
-function MatchesList() {
+export default function MatchesList() {
   const [rankings, setRankings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -54,7 +54,7 @@ function MatchesList() {
         <Trophy className="h-5 w-5" />
         <h2 className="text-lg font-bold">Global Rankings</h2>
       </div>
-      <div className="space-y-3">
+      <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
         {rankings.map((ranking, index) => (
           <div
             key={ranking.user_id}
@@ -87,5 +87,3 @@ function MatchesList() {
     </div>
   );
 }
-
-export default MatchesList;
