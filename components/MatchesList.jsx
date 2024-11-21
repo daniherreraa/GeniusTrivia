@@ -6,6 +6,8 @@ export default function MatchesList() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  console.log(rankings)
+
   const fetchRankings = async () => {
     try {
       const response = await fetch('/api/rankings');
@@ -26,7 +28,7 @@ export default function MatchesList() {
     fetchRankings();
 
     // Set interval to fetch rankings every 5 seconds
-    const intervalId = setInterval(fetchRankings, 5000);
+    const intervalId = setInterval(fetchRankings, 300);
 
     // Clean up interval on component unmount
     return () => clearInterval(intervalId);
@@ -54,7 +56,7 @@ export default function MatchesList() {
         <Trophy className="h-5 w-5" />
         <h2 className="text-lg font-bold">Global Rankings</h2>
       </div>
-      <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+      <div className="space-y-3 max-h-32 overflow-y-scroll pr-2">
         {rankings.map((ranking, index) => (
           <div
             key={ranking.user_id}
